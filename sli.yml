@@ -1,0 +1,67 @@
+{
+   "groups": [
+      {
+         "name": "my-service.rules",
+         "rules": [
+            {
+               "expr": "avg_over_time(service:sli:conformity:status[1h]) * 100",
+               "labels": { },
+               "record": "service:sli:conformity:avg1h"
+            },
+            {
+               "expr": "avg_over_time(service:sli:conformity:status[1d]) * 100",
+               "labels": { },
+               "record": "service:sli:conformity:avg1d"
+            },
+            {
+               "expr": "avg_over_time(service:sli:conformity:status[1w]) * 100",
+               "labels": { },
+               "record": "service:sli:conformity:avg1w"
+            },
+            {
+               "expr": "avg_over_time(service:sli:conformity:status[4w]) * 100",
+               "labels": { },
+               "record": "service:sli:conformity:avg4w"
+            },
+            {
+               "expr": "histogram_quantile(0.95, sum by (namespace, service, le) (rate(service_http_request_endpoint_bucket{service=\"my-service\", route=\"/API/MYENDPOINT\"}[5m])))",
+               "labels": {
+                  "name": "latency:myendpoint:95:100:ms"
+               },
+               "record": "service:sli:latency:myendpoint:95:100:ms"
+            },
+            {
+               "expr": "service:sli:latency:myendpoint:95:100:ms{namespace=~\".+\", service=~\".+\", name=~\".+\"} >= 0",
+               "labels": { },
+               "record": "service:sli:clean:latency:myendpoint:95:100:ms"
+            },
+            {
+               "expr": "service:sli:clean:latency:myendpoint:95:100:ms < bool 100.000000",
+               "labels": {
+                  "name": "latency:myendpoint:95:100:ms"
+               },
+               "record": "service:sli:conformity:status"
+            },
+            {
+               "expr": "min by(namespace, service) (service_health{service=~\"my-service\", status=\"healthy\"})",
+               "labels": {
+                  "name": "health"
+               },
+               "record": "service:sli:health"
+            },
+            {
+               "expr": "service:sli:health{namespace=~\".+\", service=~\".+\", name=~\".+\"} >= 0",
+               "labels": { },
+               "record": "service:sli:clean:health"
+            },
+            {
+               "expr": "service:sli:clean:health > bool 0.000000",
+               "labels": {
+                  "name": "health"
+               },
+               "record": "service:sli:conformity:status"
+            }
+         ]
+      }
+   ]
+}
